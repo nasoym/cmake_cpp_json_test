@@ -1,9 +1,19 @@
 #include <iostream>
 #include <string>
+#include <cstring> 
+
+#include <chrono>
+#include <thread>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 
 
 #include <nlohmann/json.hpp>
 
+using namespace std;
 using json = nlohmann::json;
  
 int main(int argc, char *argv[]){
@@ -31,8 +41,54 @@ int main(int argc, char *argv[]){
 //    std::cout << j3.dump() << std::endl;
 
 
-    for (std::string line; std::getline(std::cin, line);) {
-        std::cout << "---" << line << "---" << std::endl;
+    // while(true) {
+    //   for (std::string line; std::getline(std::cin, line);) {
+    //       std::cout << "---" << line << "---" << std::endl;
+    //   }
+    //
+    //   std::cout << "- before sleep" << std::endl;
+    //   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //   std::cout << "- after sleep" << std::endl;
+    //
+    // }
+
+   // cout << cin.rdbuf()->in_avail() << endl;
+
+    // FILE *pFile ;
+    // int i ;
+    // pFile = stdin ;
+    // i = (int) sizeof (stdin) ;
+    // printf("%d bytes in stdin\n", i) ;
+
+    fd_set readfds;
+    FD_ZERO(&readfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
+    char message[50];
+
+    string str;
+
+    while(1)
+    {
+        FD_SET(STDIN_FILENO, &readfds);
+
+        if (select(1, &readfds, NULL, NULL, &timeout))
+        {
+          // for (std::string line; std::getline(std::cin, line);) {
+          //     std::cout << "---" << line << "---" << std::endl;
+          // }
+            // scanf("%s", message); 
+            // printf("Message: %s\n", message);
+            getline(cin, str); 
+            cout << str << " : newline" << endl; 
+
+        }
+
+        printf("...\n");
+        sleep(1);
     }
 
    return 0;
