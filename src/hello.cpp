@@ -9,6 +9,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+// #include <unistd.h>
+#include <stdio.h>
+#include <sys/poll.h>
+
 
 
 #include <nlohmann/json.hpp>
@@ -70,22 +75,66 @@ int main(int argc, char *argv[]){
     char message[50];
 
     string str;
+    size_t nbytes;
+    ssize_t bytes_read;
+
+       struct pollfd fds;
+        int ret;
+        fds.fd = 0; /* this is STDIN */
+        fds.events = POLLIN;
 
     while(1)
     {
-        FD_SET(STDIN_FILENO, &readfds);
+        // FD_SET(STDIN_FILENO, &readfds);
+        //
+        // if (select(1, &readfds, NULL, NULL, &timeout))
+        // {
+        //   // for (std::string line; std::getline(std::cin, line);) {
+        //   //     std::cout << "---" << line << "---" << std::endl;
+        //   // }
+        //     cout << "data in stdin read one line:" << endl; 
+        //     // scanf("%s", message); 
+        //     // printf("Message: %s\n", message);
+        //
+        //     // getline(cin, str); 
+        //     // cout << str << " : newline" << endl; 
+        //
+        //     nbytes = sizeof(message);
+        //     int fd = 0;
+        //     bytes_read = read(fd, message, nbytes);
+        //     printf("Message: %s\n", message);
+        //
+        //
+        // }
+        //
 
-        if (select(1, &readfds, NULL, NULL, &timeout))
-        {
-          // for (std::string line; std::getline(std::cin, line);) {
-          //     std::cout << "---" << line << "---" << std::endl;
-          // }
-            // scanf("%s", message); 
-            // printf("Message: %s\n", message);
-            getline(cin, str); 
-            cout << str << " : newline" << endl; 
+        ret = poll(&fds, 1, 0);
+        if(ret == 1) {
+                printf("Yep\n");
+            // getline(cin, str); 
+            // cout << str << " : newline" << endl; 
 
+                char c;
+            bytes_read = read(fd, message, nbytes);
+            printf("Message: %s\n", message);
+
+          char newline = '\n';
+          string line;
+          char c;
+          while( newline != (c = readchar(&fds)) ) {
+           // line.append(c);
+          }
+
+          cout <<  line << " : newline" << endl; 
+
+
+        } else if(ret == 0) {
+
+                printf("No\n");
+        } else {
+                printf("Error\n");
         }
+
 
         printf("...\n");
         sleep(1);
