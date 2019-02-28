@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include <sys/types.h>
-// #include <unistd.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <sys/poll.h>
 
@@ -59,11 +59,9 @@ int main(int argc, char *argv[]){
 
    // cout << cin.rdbuf()->in_avail() << endl;
 
-    // FILE *pFile ;
-    // int i ;
-    // pFile = stdin ;
-    // i = (int) sizeof (stdin) ;
-    // printf("%d bytes in stdin\n", i) ;
+    FILE *pFile ;
+    int i ;
+    pFile = stdin ;
 
     fd_set readfds;
     FD_ZERO(&readfds);
@@ -73,6 +71,7 @@ int main(int argc, char *argv[]){
     timeout.tv_usec = 0;
 
     char message[50];
+    char c1[1];
 
     string str;
     size_t nbytes;
@@ -82,6 +81,7 @@ int main(int argc, char *argv[]){
         int ret;
         fds.fd = 0; /* this is STDIN */
         fds.events = POLLIN;
+          char newline = '\n';
 
     while(1)
     {
@@ -110,33 +110,63 @@ int main(int argc, char *argv[]){
 
         ret = poll(&fds, 1, 0);
         if(ret == 1) {
-                printf("Yep\n");
+                printf("Yep: ");
+            // i = (int) sizeof (stdin) ;
+            // printf("%d bytes in stdin ", i) ;
             // getline(cin, str); 
             // cout << str << " : newline" << endl; 
 
-                char c;
-            bytes_read = read(fd, message, nbytes);
-            printf("Message: %s\n", message);
+            // bytes_read = read(&fds, message, nbytes);
+            // bytes_read = read(0, message, nbytes);
+                int byte_count = 0;
+                while(1) {
+              bytes_read = read(0, c1, 1);
+              printf("(%zd)", bytes_read);
 
-          char newline = '\n';
-          string line;
-          char c;
-          while( newline != (c = readchar(&fds)) ) {
-           // line.append(c);
-          }
+              if (bytes_read == 0 ) {
+                printf("EOF");
+                printf(" %d", byte_count);
+                break;
+              }
+              byte_count += 1;
 
-          cout <<  line << " : newline" << endl; 
+              if (newline == c1[0]) {
+                printf("EOL");
+                printf(" %d", byte_count);
+                break;
+              } else {
+                printf("%s", c1);
+              }
+                }
+
+            // bytes_read = scanf("%s", message); 
+            // printf(" %zd: %s", bytes_read, message);
+
+            // std::cout << std::hex << c1 ;
+
+
+
+          //
+          // string line;
+          // char c;
+          // while( newline != (c = readchar(&fds)) ) {
+          //   // printf("%s", c);
+          //  // line.append(c);
+          // }
+          //
+          // cout <<  line << " : newline" << endl; 
+          // int c;
+          // c = getchar();
+          //
+          // putchar(c);
 
 
         } else if(ret == 0) {
-
-                printf("No\n");
+                printf("No");
         } else {
-                printf("Error\n");
+                printf("Error");
         }
-
-
-        printf("...\n");
+        printf("\n");
         sleep(1);
     }
 
