@@ -1,19 +1,10 @@
+
 #include <iostream>
 #include <string>
-#include <cstring> 
-#include <deque>
-
-#include <chrono>
-#include <thread>
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
 #include <sys/poll.h>
+
+#include <deque>
 
 #include <nlohmann/json.hpp>
 
@@ -22,84 +13,56 @@ using json = nlohmann::json;
  
 int main(int argc, char *argv[]){
 
-  // // create an empty structure (null)
-  // json j;
-  //
-  // // add a number that is stored as double (note the implicit conversion of j to an object)
-  // j["pi"] = 3.141;
-  //
-  // // add a Boolean that is stored as bool
-  // j["happy"] = true;
-  //
-  // // add a string that is stored as std::string
-  // j["name"] = "Niels";
-  //
-  //
-  //   // parse explicitly
-  //   auto j3 = json::parse("{ \"happy\": true, \"pi\": 3.141 }");
-  //
-  //  
-  //    std::cout << j.dump() << std::endl;
-  //    std::cout << j3.dump() << std::endl;
-
-  char c1[1024];
-  string line;
-  deque<string> lines;
-
-
+  char newline = '\n';
+  char bytes_from_stdin[1024];
   ssize_t bytes_read;
+  string appended_bytes_from_stdin;
+  size_t newline_pos_in_stdin = 0;
 
   struct pollfd fds;
-  int ret;
   fds.fd = 0; /* this is STDIN */
   fds.events = POLLIN;
+  int poll_return;
 
-  char newline = '\n';
+  deque<string> line_deque;
+
   json json_line;
 
   while(1) {
-    ret = poll(&fds, 1, 0);
-    if(ret == 1) {
-      // printf("Yep: ");
+    poll_return = poll(&fds, 1, 0);
+    if(poll_return == 1) {
       // bytes_read = read(&fds, message, nbytes);
-      bytes_read = read(0, c1, sizeof(c1));
-      // printf("(%zd) ", bytes_read);
-      c1[bytes_read] = 0;
-      // printf("%s ", c1);
-      line.append(c1);
-      if ((bytes_read > 0 ) && (newline == c1[bytes_read-1])) {
-        // printf("EOL");
-        // std::cout << '\n' << line << '\n';
-        lines.push_back(line);
-        line.clear();
-
+      bytes_read = read(0, bytes_from_stdin, sizeof(bytes_from_stdin));
+      appended_bytes_from_stdin.append(bytes_from_stdin,bytes_read);
+      while ((newline_pos_in_stdin = appended_bytes_from_stdin.find(newline)) != std::string::npos) {
+        line_deque.push_back(appended_bytes_from_stdin.substr(0, newline_pos_in_stdin));
+        appended_bytes_from_stdin.erase(0, newline_pos_in_stdin + 1);
       }
-    } else if(ret == 0) {
-    //   printf("No");
-    } else {
-      printf("Error");
+    // } else if(poll_return == 0) {
+    // //   printf("No");
+    // } else {
+    } else if(poll_return != 0) {
+      std::cerr << "error while polling stdin for data" << std::endl;
     }
-
-    while (!lines.empty())
-    {
-      // std::cout << " -:" << lines.front() << ":- \n";
-      json_line = json::parse(lines.front());
-      lines.pop_front();
-      // std::cout << " -:" << json_line.dump() << ":- \n";
-      if (json_line.find("command") != json_line.end()) {
-        std::cout << "command: " << json_line["command"].get<string>() << "\n";
-        // there is an entry with key "foo"
-
-        if (json_line["command"].get<string>().compare("abc") == 0) {
-          std::cout << "ABC" << "\n";
+    while (!line_deque.empty()) {
+      try {
+        json_line = json::parse(line_deque.front());
+        if (json_line.find("command") != json_line.end()) {
+          std::cout << "command: " << json_line["command"].get<string>() << std::endl;
+          if (json_line["command"].get<string>().compare("abc") == 0) {
+            std::cout << "ABC" << std::endl;
+          }
         }
-
       }
+      catch (json::exception& e) {
+        // output exception information
+        std::cerr << "message: " << e.what() << '\n'
+                   << "exception id: " << e.id << std::endl;
+      }
+      line_deque.pop_front();
     }
 
-    // printf("\n");
     sleep(1);
-    //   std::cout << "- before sleep" << std::endl;
     //   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     //   std::cout << "- after sleep" << std::endl;
   }
