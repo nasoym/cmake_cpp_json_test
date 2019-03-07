@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
     if(poll_return == 1) {
       // bytes_read = read(&fds, message, nbytes);
       bytes_read = read(0, bytes_from_stdin, sizeof(bytes_from_stdin));
-      appended_bytes_from_stdin.append(bytes_from_stdin,bytes_read);
+      appended_bytes_from_stdin.append(bytes_from_stdin, bytes_read);
       while ((newline_pos_in_stdin = appended_bytes_from_stdin.find(newline)) != std::string::npos) {
         line_deque.push_back(appended_bytes_from_stdin.substr(0, newline_pos_in_stdin));
         appended_bytes_from_stdin.erase(0, newline_pos_in_stdin + 1);
